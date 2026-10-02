@@ -1,0 +1,4 @@
+dependencies {
+    // Beta-3-specific GT5U and NEI dependencies are intentionally isolated until
+    // the adapter layer is pinned against the exact pack versions.
+}
