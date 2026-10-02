@@ -15,5 +15,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gtnewhorizons.gtnhsettingsconvention") version("2.0.33")
+    id("com.gtnewhorizons.gtnhsettingsconvention") version("2.0.29")
 }
+
+rootProject.name = "tcost"
