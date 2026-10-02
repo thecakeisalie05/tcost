@@ -35,6 +35,9 @@ public final class PlannerChecks {
         special.knownProduced.add("unsupported");check(!special.calculate("unsupported",1,s).unresolved.isEmpty(),"unsupported output is not free raw material");
         boolean rejected=false;try{p.calculate("part",Double.NaN,s);}catch(IllegalArgumentException e){rejected=true;}
         check(rejected,"invalid quantity rejected");
+        Planner choices=new Planner();choices.register(route("choice","ingredient","ore",1,"choice:test",1,0,0,0));
+        Planner.Profile noCrafting=new Planner.Profile();Planner.Result choice=choices.calculate("choice:test",1,noCrafting);
+        check(choice.unresolved.isEmpty()&&choice.operations==0,"ingredient alternatives do not require crafting availability or count as operations");
         System.out.println("Planner checks passed (batching, surplus, tier, quantity, parallelism, weights, objectives, pins, cycles, bounds, special requirements, unsupported outputs).");
     }
 }

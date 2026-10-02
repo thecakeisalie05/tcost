@@ -18,7 +18,7 @@ The NEI right-hand grid contains items, not unique recipes. Hover cost uses the 
 
 ## Calculation boundaries
 
-The first alpha evaluates deterministic GregTech recipe maps, standard shaped/shapeless crafting and ore-dictionary variants, and furnace recipes. Chance recipes and custom dynamic crafting handlers are skipped; their known outputs are marked unresolved rather than pretending they are raw resources. Other mod processing is outside this initial adapter. Inputs without an indexed producing recipe are assumed source materials; explicitly mark your intended stopping points.
+The first alpha evaluates deterministic GregTech recipe maps and assembly-line recipes, standard shaped/shapeless crafting and ore-dictionary variants, and furnace recipes. Chance recipes and custom dynamic crafting handlers are skipped; their known outputs are marked unresolved rather than pretending they are raw resources. Other mod processing is outside this initial adapter. Inputs without an indexed producing recipe are assumed source materials; explicitly mark your intended stopping points.
 
 The evaluator compares complete alternatives recursively under a bounded search. It is a **local route heuristic**, not a global minimum solver. It rounds whole batches, shows unused surplus, and does not reuse surplus across sibling branches, credit byproducts, or optimize multi-output production jointly. Results can therefore exceed the true globally minimal bill of materials.
 

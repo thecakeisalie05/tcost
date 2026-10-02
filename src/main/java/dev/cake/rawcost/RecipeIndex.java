@@ -54,20 +54,34 @@ public final class RecipeIndex {
                 List<Planner.Amount> in=new ArrayList<>(),out=new ArrayList<>();
                 boolean chance=false;
                 if(r.mInputs!=null) for(int i=0;i<r.mInputs.length;i++) {
-                    ItemStack s=r.mInputs[i]; if(s!=null&&s.stackSize>0) in.add(item(s));
-                    if(r.mInputChances!=null&&i<r.mInputChances.length&&r.mInputChances[i]!=10000) chance=true;
+                    int c=r.getInputChance(i);
+                    ItemStack s=r.mInputs[i];
+                    if(s!=null&&s.stackSize>0&&c>0) {
+                        if(r instanceof GTRecipe.GTRecipe_WithAlt) {
+                            ItemStack[][] alts=((GTRecipe.GTRecipe_WithAlt)r).mOreDictAlt;
+                            if(alts!=null&&i<alts.length&&alts[i]!=null&&alts[i].length>0) {
+                                List<Planner.Amount> choices=new ArrayList<>();
+                                for(ItemStack alt:alts[i])if(alt!=null&&alt.stackSize>0)choices.add(item(alt));
+                                in.add(alternativeAmounts(choices));
+                            } else in.add(item(s));
+                        } else in.add(item(s));
+                    }
+                    if(c!=0&&c!=10000) chance=true;
                 }
                 if(r.mFluidInputs!=null) for(int i=0;i<r.mFluidInputs.length;i++) {
-                    FluidStack s=r.mFluidInputs[i]; if(s!=null&&s.amount>0) in.add(fluid(s));
-                    if(r.mFluidInputChances!=null&&i<r.mFluidInputChances.length&&r.mFluidInputChances[i]!=10000) chance=true;
+                    int c=r.mFluidInputChances!=null&&i<r.mFluidInputChances.length?r.mFluidInputChances[i]:10000;
+                    FluidStack s=r.mFluidInputs[i]; if(s!=null&&s.amount>0&&c>0) in.add(fluid(s));
+                    if(c!=0&&c!=10000) chance=true;
                 }
                 if(r.mOutputs!=null) for(int i=0;i<r.mOutputs.length;i++) {
-                    ItemStack s=r.mOutputs[i]; if(s!=null&&s.stackSize>0) out.add(item(s));
-                    if(r.getOutputChance(i)!=10000) chance=true;
+                    int c=r.getOutputChance(i);
+                    ItemStack s=r.mOutputs[i]; if(s!=null&&s.stackSize>0&&c>0) out.add(item(s));
+                    if(c!=0&&c!=10000) chance=true;
                 }
                 if(r.mFluidOutputs!=null) for(int i=0;i<r.mFluidOutputs.length;i++) {
-                    FluidStack s=r.mFluidOutputs[i]; if(s!=null&&s.amount>0) out.add(fluid(s));
-                    if(r.mFluidOutputChances!=null&&i<r.mFluidOutputChances.length&&r.mFluidOutputChances[i]!=10000) chance=true;
+                    int c=r.mFluidOutputChances!=null&&i<r.mFluidOutputChances.length?r.mFluidOutputChances[i]:10000;
+                    FluidStack s=r.mFluidOutputs[i]; if(s!=null&&s.amount>0&&c>0) out.add(fluid(s));
+                    if(c!=0&&c!=10000) chance=true;
                 }
                 if(chance) { skippedChance++; continue; }
                 int tier=0; double voltage=(double)r.mEUt/Math.max(1,map.getAmperage());
@@ -77,6 +91,23 @@ public final class RecipeIndex {
                 if(!r.getMetadataStorage().getEntries().isEmpty()) special=true;
                 add(machine,in,out,r.mDuration,r.mEUt*(double)r.mDuration,tier,special);
             }
+        }
+        machines.add("assembly_line");machineNames.put("assembly_line","Assembly line");
+        for(GTRecipe.RecipeAssemblyLine r:GTRecipe.RecipeAssemblyLine.sAssemblylineRecipes) {
+            if(r.mOutput==null)continue;
+            List<Planner.Amount> in=new ArrayList<>();
+            if(r.mInputs!=null) for(int i=0;i<r.mInputs.length;i++) {
+                ItemStack s=r.mInputs[i];if(s==null||s.stackSize<=0)continue;
+                if(r.mOreDictAlt!=null&&i<r.mOreDictAlt.length&&r.mOreDictAlt[i]!=null&&r.mOreDictAlt[i].length>0) {
+                    List<Planner.Amount> choices=new ArrayList<>();
+                    for(ItemStack alt:r.mOreDictAlt[i])if(alt!=null&&alt.stackSize>0)choices.add(item(alt));
+                    in.add(alternativeAmounts(choices));
+                } else in.add(item(s));
+            }
+            if(r.mFluidInputs!=null)for(FluidStack s:r.mFluidInputs)if(s!=null&&s.amount>0)in.add(fluid(s));
+            int tier=0;while(tier<GTValues.V.length-1&&r.mEUt>GTValues.V[tier])tier++;
+            // Research is a prerequisite, not recurring raw consumption; explicitly declare it available.
+            add("assembly_line",in,Collections.singletonList(item(r.mOutput)),r.mDuration,r.mEUt*(double)r.mDuration,tier,true);
         }
         for(Object object:CraftingManager.getInstance().getRecipeList()) {
             IRecipe recipe=(IRecipe)object; ItemStack output=recipe.getRecipeOutput();
@@ -112,6 +143,14 @@ public final class RecipeIndex {
             if(a!=null) add("furnace",Collections.singletonList(a),Collections.singletonList(item((ItemStack)entry.getValue())),200,0,0,false);
         }
     }
+    private Planner.Amount alternativeAmounts(List<Planner.Amount> choices) {
+        if(choices.isEmpty())throw new IllegalArgumentException("Empty GT ingredient alternatives");
+        if(choices.size()==1)return choices.get(0);
+        List<String> signature=new ArrayList<>();for(Planner.Amount a:choices)signature.add(a.key+"="+a.count);Collections.sort(signature);
+        String alias="choice:"+digest(signature.toString());planner.names.put(alias,"Ingredient alternatives");
+        for(Planner.Amount a:choices)add("ingredient",Collections.singletonList(a),Collections.singletonList(new Planner.Amount(alias,1)),0,0,0,false);
+        return new Planner.Amount(alias,1);
+    }
     private Planner.Amount choice(List<ItemStack> stacks) {
         List<ItemStack> expanded=new ArrayList<>();
         for(ItemStack s:stacks) {
@@ -122,12 +161,15 @@ public final class RecipeIndex {
             } else expanded.add(s);
         }
         if(expanded.isEmpty()) return null;
+        if(expanded.size()==1) {
+            ItemStack single=expanded.get(0).copy();single.stackSize=1;return item(single);
+        }
         List<String> keys=new ArrayList<>();
         for(ItemStack s:expanded) keys.add(itemKey(s)); Collections.sort(keys);
         String alias="choice:"+digest(keys.toString()); planner.names.put(alias,"Ingredient alternatives");
         for(ItemStack s:expanded) {
             ItemStack single=s.copy(); single.stackSize=1;
-            add("crafting",Collections.singletonList(item(single)),Collections.singletonList(new Planner.Amount(alias,1)),0,0,0,false);
+            add("ingredient",Collections.singletonList(item(single)),Collections.singletonList(new Planner.Amount(alias,1)),0,0,0,false);
         }
         return new Planner.Amount(alias,1);
     }

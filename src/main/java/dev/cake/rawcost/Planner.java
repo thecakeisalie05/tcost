@@ -35,6 +35,7 @@ public final class Planner {
         public double materialWeight=1, energyWeight=0.000001, timeWeight=0.001;
         public int maxDepth=32, maxVisits=12000;
         public boolean available(Route r) {
+            if(r.machine.equals("ingredient")) return true;
             Integer tier=machines.get(r.machine);
             return tier!=null && tier>=r.tier && (!r.special || allowedSpecial.contains(r.id));
         }
@@ -85,7 +86,7 @@ public final class Planner {
             if(!Double.isFinite(batches)||batches<=0) continue;
             Result result=new Result();
             int machines=Math.max(1,p.machineCounts.getOrDefault(r.machine,1));
-            result.ticks=Math.ceil(batches/machines)*r.ticks; result.eu=batches*r.eu; result.operations=batches;
+            result.ticks=Math.ceil(batches/machines)*r.ticks; result.eu=batches*r.eu; result.operations=r.machine.equals("ingredient")?0:batches;
             for(Amount input:r.inputs) if(input.count>0) result.merge(expand(input.key,input.count*batches,p,path,depth+1));
             double extra=batches*r.output(key)-count;
             if(extra>1e-8) add(result.surplus,key,extra);

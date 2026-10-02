@@ -139,7 +139,8 @@ public final class OptionsGui extends GuiScreen {
             drawString(fontRendererObj,"Hover an item in NEI and press F8, or choose Materials.",left+8,top+87,0xCCCCCC);
         }
         for(GuiTextField f:fields)f.drawTextBox();
-        drawString(fontRendererObj,shorten(message.isEmpty()?client.status:message,w-82),left+8,top+h-20,0xAABBDD);
+        int statusX=tab==1&&h<250?118:8;
+        drawString(fontRendererObj,shorten(message.isEmpty()?client.status:message,w-statusX-74),left+statusX,top+h-20,0xAABBDD);
         super.drawScreen(x,y,partial);
     }
     protected void keyTyped(char c,int k) {
