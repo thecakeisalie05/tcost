@@ -1,0 +1,13 @@
+[
+  {
+    "modid": "tcost",
+    "name": "TCost",
+    "description": "Recursive recipe cost and route analysis for GTNH.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "https://github.com/thecakeisalie05/tcost",
+    "authorList": ["Cake"],
+    "requiredMods": [],
+    "dependencies": []
+  }
+]
