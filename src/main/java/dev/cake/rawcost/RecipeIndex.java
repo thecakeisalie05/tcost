@@ -2,7 +2,17 @@ package dev.cake.rawcost;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
@@ -62,7 +72,7 @@ public final class RecipeIndex {
                             if(alts!=null&&i<alts.length&&alts[i]!=null&&alts[i].length>0) {
                                 List<Planner.Amount> choices=new ArrayList<>();
                                 for(ItemStack alt:alts[i])if(alt!=null&&alt.stackSize>0)choices.add(item(alt));
-                                in.add(alternativeAmounts(choices));
+                                in.add(choices.isEmpty()?item(s):alternativeAmounts(choices));
                             } else in.add(item(s));
                         } else in.add(item(s));
                     }
@@ -101,7 +111,7 @@ public final class RecipeIndex {
                 if(r.mOreDictAlt!=null&&i<r.mOreDictAlt.length&&r.mOreDictAlt[i]!=null&&r.mOreDictAlt[i].length>0) {
                     List<Planner.Amount> choices=new ArrayList<>();
                     for(ItemStack alt:r.mOreDictAlt[i])if(alt!=null&&alt.stackSize>0)choices.add(item(alt));
-                    in.add(alternativeAmounts(choices));
+                    in.add(choices.isEmpty()?item(s):alternativeAmounts(choices));
                 } else in.add(item(s));
             }
             if(r.mFluidInputs!=null)for(FluidStack s:r.mFluidInputs)if(s!=null&&s.amount>0)in.add(fluid(s));

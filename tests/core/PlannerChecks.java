@@ -1,6 +1,6 @@
 package dev.cake.rawcost;
 
-import java.util.*;
+import java.util.Collections;
 
 /** Dependency-free executable regression checks: ./scripts/test-core.sh */
 public final class PlannerChecks {
